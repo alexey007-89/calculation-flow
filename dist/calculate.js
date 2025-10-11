@@ -176,3 +176,39 @@ export function calculate({ Tem, Pres, arrx_k }) {
     const Zfactor1 = 1 + A0;
     return Number(Zfactor1.toFixed(4));
 }
+export function calculateGeometricVolume({ diameter1, length1, diameter2, length2, diameter3, length3, additionalVolume }) {
+    // Расчет геометрического объема участка
+    // Диаметры в мм, длины в км, дополнительный объем в тыс. м³
+    // =ОКРУГЛ(ПИ()*d1^2/4*L1/1000+ПИ()*d2^2/4*L2/1000+ПИ()*d3^2/4*L3/1000+(доп_объем*1000);0)
+    const volume1 = Math.PI * Math.pow(diameter1, 2) / 4 * length1 / 1000;
+    const volume2 = Math.PI * Math.pow(diameter2, 2) / 4 * length2 / 1000;
+    const volume3 = Math.PI * Math.pow(diameter3, 2) / 4 * length3 / 1000;
+    const additional = additionalVolume * 1000; // тыс. м³ -> м³
+    const totalVolume = volume1 + volume2 + volume3 + additional;
+    return Math.round(totalVolume);
+}
+export function calculateGasVolume({ geometricVolume, numberOfPurges }) {
+    // Расчет объема газа, расходуемого для удаления газовоздушной смеси по участкам
+    // =ОКРУГЛ(геом_объем*3*количество_продувок;0)
+    const result = geometricVolume * 3 * numberOfPurges;
+    return Math.round(result);
+}
+export function calculateGasStockChange({ geometricVolume, avgPressure1, compressibility1, avgTemperature1, avgPressure2, compressibility2, avgTemperature2 }) {
+    // Расчет изменения запаса газа в участке
+    // =ОКРУГЛ((C$27/C$26)*C$37*(C74/(C76*C75)-C81/(C83*C82)))
+    // C27 = 293.15 К (температура газа при стандартных условиях)
+    // C26 = 0.1013 МПа (давление газа при стандартных условиях)
+    const C27 = 293.15; // температура газа при стандартных условиях (К)
+    const C26 = 0.1013; // давление газа при стандартных условиях (МПа)
+    const result = (C27 / C26) * geometricVolume * (avgPressure1 / (compressibility1 * avgTemperature1) - avgPressure2 / (compressibility2 * avgTemperature2));
+    return Math.round(result);
+}
+export function calculateAverageAbsolutePressure({ C77, C20, C26, C79 }) {
+    // Расчет среднего абсолютного давления газа
+    // =(2/3)*((C77+(C$20*C$26/760))+((C79+(C$20*C$26/760))^2/((C77+C$20*C$26/760)+(C79+C$20*C$26/760))))
+    const term1 = C77 + (C20 * C26 / 760);
+    const term2 = C79 + (C20 * C26 / 760);
+    const term3 = term2 * term2 / (term1 + term2);
+    const result = (2 / 3) * (term1 + term3);
+    return result;
+}
