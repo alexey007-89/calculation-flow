@@ -56,10 +56,9 @@ const stockChange = calculateGasStockChange({
 
 // Расчет среднего абсолютного давления газа
 const avgPressure = calculateAverageAbsolutePressure({
-  C77: 10, // параметр C77
-  C20: 5,  // параметр C20
-  C26: 0.1, // параметр C26
-  C79: 8   // параметр C79
+  excessPressureStart: 10, // Избыточное давление в начале участка (МПа)
+  atmosphericPressureMm: 745,  // Атмосферное давление (мм.рт.ст.)
+  excessPressureEnd: 8   // Избыточное давление в конце участка (МПа)
 });
 ```
 
@@ -79,5 +78,5 @@ node dist/index.js gas 100 50
 node dist/index.js stock 100 5 0.9 300 3 0.8 280
 
 # Расчет среднего абсолютного давления газа
-node dist/index.js pressure 10 5 0.1 8
+node dist/index.js pressure 10 745 8
 ``` 

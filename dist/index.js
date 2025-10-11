@@ -73,14 +73,16 @@ if (isMain) {
         console.log(`Результат: ${result}`);
     }
     else if (command === "pressure") {
-        const [C77, C20, C26, C79] = process.argv.slice(3).map(Number);
-        if (process.argv.length < 7) {
-            console.log("Usage: node dist/index.js pressure <C77> <C20> <C26> <C79>");
+        const [excessPressureStart, atmosphericPressureMm, excessPressureEnd] = process.argv.slice(3).map(Number);
+        if (process.argv.length < 6) {
+            console.log("Usage: node dist/index.js pressure <excessPressureStart_MPa> <atmosphericPressure_mmHg> <excessPressureEnd_MPa>");
             process.exit(1);
         }
-        const result = calculateAverageAbsolutePressure({ C77, C20, C26, C79 });
+        const result = calculateAverageAbsolutePressure({ excessPressureStart, atmosphericPressureMm, excessPressureEnd });
         console.log("=== РАСЧЕТ СРЕДНЕГО АБСОЛЮТНОГО ДАВЛЕНИЯ ГАЗА ===");
-        console.log(`C77: ${C77}, C20: ${C20}, C26: ${C26}, C79: ${C79}`);
+        console.log(`Избыточное давление в начале участка (МПа): ${excessPressureStart}`);
+        console.log(`Атмосферное давление (мм.рт.ст.): ${atmosphericPressureMm}`);
+        console.log(`Избыточное давление в конце участка (МПа): ${excessPressureEnd}`);
         console.log(`Результат: ${result}`);
     }
     else {
@@ -97,7 +99,7 @@ if (isMain) {
         console.log("  node dist/index.js volume 1000 0.001 800 0.002 600 0.001 1.5  # дополнительный объем в тыс. м³");
         console.log("  node dist/index.js gas 100 50  # геом_объем=100, продувки=50");
         console.log("  node dist/index.js stock 100 5 0.9 300 3 0.8 280  # геом_объем давление1 сжим1 темп1 давление2 сжим2 темп2");
-        console.log("  node dist/index.js pressure 10 5 0.1 8  # C77 C20 C26 C79");
+        console.log("  node dist/index.js pressure 10 745 8  # excessStart_MPa atmospheric_mmHg excessEnd_MPa");
         process.exit(1);
     }
 }

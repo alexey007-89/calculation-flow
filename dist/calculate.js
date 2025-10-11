@@ -203,12 +203,18 @@ export function calculateGasStockChange({ geometricVolume, avgPressure1, compres
     const result = (C27 / C26) * geometricVolume * (avgPressure1 / (compressibility1 * avgTemperature1) - avgPressure2 / (compressibility2 * avgTemperature2));
     return Math.round(result);
 }
-export function calculateAverageAbsolutePressure({ C77, C20, C26, C79 }) {
+export function calculateAverageAbsolutePressure({ excessPressureStart, atmosphericPressureMm, excessPressureEnd, }) {
     // Расчет среднего абсолютного давления газа
-    // =(2/3)*((C77+(C$20*C$26/760))+((C79+(C$20*C$26/760))^2/((C77+C$20*C$26/760)+(C79+C$20*C$26/760))))
-    const term1 = C77 + (C20 * C26 / 760);
-    const term2 = C79 + (C20 * C26 / 760);
-    const term3 = term2 * term2 / (term1 + term2);
+    // Формула (Excel/VBA):
+    // =(2/3)*((C77+(C20*C26/760))+((C79+(C20*C26/760))^2/((C77+C20*C26/760)+(C79+C20*C26/760))))
+    // C26 — константа давления при стандартных условиях = 0.1013 МПа
+    const C26 = 0.1013; // МПа
+    // Перевод атмосферного давления из мм рт. ст. в МПа
+    const atmosphericMPa = (atmosphericPressureMm * C26) / 760;
+    const term1 = excessPressureStart + atmosphericMPa; // абсолютное давление в начале (МПа)
+    const term2 = excessPressureEnd + atmosphericMPa; // абсолютное давление в конце (МПа)
+    const term3 = (term2 * term2) / (term1 + term2);
     const result = (2 / 3) * (term1 + term3);
+    // Вернуть с 4 знаками после запятой для согласованности
     return result;
 }
