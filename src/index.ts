@@ -1,13 +1,14 @@
-import { calculate, calculateGeometricVolume, calculateGasVolume, calculateGasStockChange, calculateAverageAbsolutePressure } from "./calculate.js";
+import { calculate, calculateGeometricVolume, calculateGasVolume, calculateGasStockChange, calculateAverageAbsolutePressure, calculateAverageGasTemperature } from "./calculate.js";
 
-export { calculate, calculateGeometricVolume, calculateGasVolume, calculateGasStockChange, calculateAverageAbsolutePressure } from "./calculate.js";
+export { calculate, calculateGeometricVolume, calculateGasVolume, calculateGasStockChange, calculateAverageAbsolutePressure, calculateAverageGasTemperature } from "./calculate.js";
 
 // CLI usage: 
 // node dist/index.js calculate 300 5 "x1,x2,...,x12"
 // node dist/index.js volume d1_mm L1_km d2_mm L2_km d3_mm L3_km additional
 // node dist/index.js gas geometricVolume numberOfPurges
 // node dist/index.js stock geometricVolume avgPressure1 compressibility1 avgTemperature1 avgPressure2 compressibility2 avgTemperature2
-// node dist/index.js pressure C77 C20 C26 C79
+// node dist/index.js pressure excessStart_MPa atmospheric_mmHg excessEnd_MPa
+// node dist/index.js temperature excessTemperatureStar_K excessTemperatureEnd_K
 const isMain = process.argv[1] && /index\.(c|m)?js$/.test(process.argv[1]);
 if (isMain) {
 	const [command] = process.argv.slice(2);
@@ -71,6 +72,17 @@ if (isMain) {
 		console.log(`Газ 1 - давление: ${avgPressure1} МПа, сжимаемость: ${compressibility1}, температура: ${avgTemperature1} К`);
 		console.log(`Газ 2 - давление: ${avgPressure2} МПа, сжимаемость: ${compressibility2}, температура: ${avgTemperature2} К`);
 		console.log(`Результат: ${result}`);
+	} else if (command === "temperature") {
+		const [excessTemperatureStar, excessTemperatureEnd] = process.argv.slice(3).map(Number);
+		if (process.argv.length < 5) {
+			console.log("Usage: node dist/index.js temperature <excessTemperatureStar_K> <excessTemperatureEnd_K>");
+			process.exit(1);
+		}
+		const result = calculateAverageGasTemperature({ excessTemperatureStar, excessTemperatureEnd });
+		console.log("=== РАСЧЕТ СРЕДНЕЙ ТЕМПЕРАТУРЫ ГАЗА ===");
+		console.log(`Температура газа в начале участка (К): ${excessTemperatureStar}`);
+		console.log(`Температура газа в конце участка (К): ${excessTemperatureEnd}`);
+		console.log(`Результат: ${result}`);
 	} else if (command === "pressure") {
 		const [excessPressureStart, atmosphericPressureMm, excessPressureEnd] = process.argv.slice(3).map(Number);
 		if (process.argv.length < 6) {
@@ -83,6 +95,7 @@ if (isMain) {
 		console.log(`Атмосферное давление (мм.рт.ст.): ${atmosphericPressureMm}`);
 		console.log(`Избыточное давление в конце участка (МПа): ${excessPressureEnd}`);
 		console.log(`Результат: ${result}`);
+
 	} else {
 		console.log("=== CALCULATION-FLOW ===");
 		console.log("Доступные команды:");
@@ -98,6 +111,7 @@ if (isMain) {
 		console.log("  node dist/index.js gas 100 50  # геом_объем=100, продувки=50");
 		console.log("  node dist/index.js stock 100 5 0.9 300 3 0.8 280  # геом_объем давление1 сжим1 темп1 давление2 сжим2 темп2");
 		console.log("  node dist/index.js pressure 10 745 8  # excessStart_MPa atmospheric_mmHg excessEnd_MPa");
+		console.log("  node dist/index.js temperature 280 290  # excessTemperatureStar_K excessTemperatureEnd_K");
 		process.exit(1);
 	}
 }

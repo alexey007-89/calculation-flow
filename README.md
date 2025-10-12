@@ -60,6 +60,11 @@ const avgPressure = calculateAverageAbsolutePressure({
   atmosphericPressureMm: 745,  // Атмосферное давление (мм.рт.ст.)
   excessPressureEnd: 8   // Избыточное давление в конце участка (МПа)
 });
+// Расчет средней температуры газа
+const averageGasTemperature = calculateAverageGasTemperature({
+  excessTemperatureStar: 280, // Температура газа в начале участка (К)
+	excessTemperatureEnd: 290, // Температура газа в конце участка (К)
+});
 ```
 
 ## CLI
@@ -79,4 +84,7 @@ node dist/index.js stock 100 5 0.9 300 3 0.8 280
 
 # Расчет среднего абсолютного давления газа
 node dist/index.js pressure 10 745 8
+
+# Расчет средней температуры газа
+node dist/index.js temperature 280 290
 ``` 

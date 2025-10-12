@@ -218,3 +218,8 @@ export function calculateAverageAbsolutePressure({ excessPressureStart, atmosphe
     // Вернуть с 4 знаками после запятой для согласованности
     return result;
 }
+export function calculateAverageGasTemperature({ excessTemperatureStar, excessTemperatureEnd }) {
+    // Расчет средней емпературы газа
+    const result = 0.5 * (excessTemperatureStar + excessTemperatureEnd);
+    return result;
+}

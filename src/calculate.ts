@@ -302,3 +302,20 @@ export function calculateAverageAbsolutePressure({
 	// Вернуть с 4 знаками после запятой для согласованности
 	return result;
 }
+
+export interface averageGasTemperatureParams {
+	// Температура газа в начале участка (К)
+	excessTemperatureStar: number;
+	// Температура газа в конце участка (К)
+	excessTemperatureEnd: number;
+}
+
+export function calculateAverageGasTemperature({
+	excessTemperatureStar,
+	excessTemperatureEnd
+}: averageGasTemperatureParams): number {
+	// Расчет средней емпературы газа
+	const result = 0.5 * (excessTemperatureStar + excessTemperatureEnd);
+
+	return result;
+}
