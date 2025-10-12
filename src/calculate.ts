@@ -319,3 +319,24 @@ export function calculateAverageGasTemperature({
 
 	return result;
 }
+
+/**
+ * Переводит объём газа из м³ в массу (кг)
+ * @param volume объем газа в м³
+ * @param density плотность газа в кг/м³
+ * @returns масса в кг
+ */
+export function convertM3toKg(volume: number, density: number): number {
+  return volume * density;
+}
+
+/**
+ * Переводит объём газа (м³) в кг условного топлива (по теплоте в ккал)
+ * @param volume Объём газа в м³
+ * @param qn Низшая теплота сгорания газа (ккал/м³)
+ * @returns Масса условного топлива (кг у.т.)
+ */
+export function convertM3toKgUt(volume: number, qn: number): number {
+  const Q_UT = 7000; // ккал/кг у.т.
+  return (volume * qn) / Q_UT;
+}
