@@ -340,3 +340,100 @@ export function convertM3toKgUt(volume: number, qn: number): number {
   const Q_UT = 7000; // ккал/кг у.т.
   return (volume * qn) / Q_UT;
 }
+
+class Output {
+	geometricVolume: number = 0; // геометрический объем участка (м³)
+	avgPressureBeforeShuttingOff: number = 0;   // среднее абсолютное давление газа до отключения участка (МПа)
+	compressibilityBeforeShuttingOff: number = 0; // коэффициент сжимаемости газа до отключения участка
+	avgTemperatureBeforeShuttingOff: number = 0; // средняя температура газа до отключения участка (К)
+	avgPressureAfterVenting: number = 0;   // среднее абсолютное давление газа после стравливания (МПа)
+	compressibilityAfterVenting: number = 0; // коэффициент сжимаемости газа после стравливания
+	avgTemperatureAfterVenting: number = 0; // средняя температура газа после стравливания (К)
+	removingGasVolume: number = 0; // объем газа, расходуемого для удаления газовоздушной смеси (м³)
+	ventingGasVolume: number = 0; // объем газа, опорожняемого из участка  (м³)
+	summaryGasVolume: number = 0; // Суммарный расход газа по участкам  (м³)
+	summaryGasMassKgUt: number = 0; // Суммарный расход газа по участкам  (кг.у.т)
+	summaryGasMass: number = 0; // Суммарный расход газа по участкам  (кг)
+}
+
+export function allCalculate(
+	arrx_k: Composition, // массив на 12 значений компонетного состава газа в молярных долях (вклдака исходные данные)
+	density: number, // плотность газа в (кг/м³)
+	lowerHeatingValueOfGas: number, //Низшая теплота сгорания газа (ккал/м³)
+	atmosphericPressureMm: number, // Атмосферное давление (мм.рт.ст.)
+	diameter1: number, // диаметр первого участка (мм)
+	length1: number,   // длина первого участка (км)
+	diameter2: number, // диаметр второго участка (мм)
+	length2: number,   // длина второго участка (км)
+	diameter3: number, // диаметр третьего участка (мм)
+	length3: number,   // длина третьего участка (км)
+	additionalVolume: number, // дополнительный объем (тыс. м³)
+	excessPressureStartBeforeShuttingOff: number, // Избыточное давление газа до отключения участка в начале участка (МПа)
+	excessPressureEndBeforeShuttingOff: number, // Избыточное давление газа до отключения участка в конце участка  (МПа)
+	excessTemperatureStarBeforeShuttingOff: number, // Температура газа до отключения участка в начале участка (К)
+	excessTemperatureEndBeforeShuttingOff: number, // Температура газа до отключения участка в конце участка (К)
+	excessPressureStartAfterVenting: number, // Избыточное давление газа после стравливания в начале участка (МПа)
+	excessPressureEndAfterVenting: number, // Избыточное давление газа после стравливания в конце участка   (МПа)
+	excessTemperatureStarAfterVenting: number, // Температура газа после стравливания в начале участка (К)
+	excessTemperatureEndAfterVenting: number, // Температура газа после стравливания в начале участка (К)
+	numberOfPurges: number  // количество продувок при проведении работ (шт.)
+): Output {
+  if (arrx_k.length !== 12) {
+		throw new Error("arrx_k must be length 12");
+	}
+	const result = new Output();
+	result.geometricVolume = calculateGeometricVolume({
+		diameter1: diameter1,
+		length1: length1,
+		diameter2: diameter2,
+		length2: length2,
+		diameter3: diameter3,
+		length3: length3,
+		additionalVolume: additionalVolume
+	});
+	result.avgPressureBeforeShuttingOff = calculateAverageAbsolutePressure({
+        excessPressureStart: excessPressureStartBeforeShuttingOff,
+        atmosphericPressureMm: atmosphericPressureMm,
+        excessPressureEnd: excessPressureEndBeforeShuttingOff
+    });
+	result.avgPressureAfterVenting = calculateAverageAbsolutePressure({
+        excessPressureStart: excessPressureStartAfterVenting,
+        atmosphericPressureMm: atmosphericPressureMm,
+        excessPressureEnd: excessPressureEndAfterVenting
+    });
+	result.avgTemperatureBeforeShuttingOff = calculateAverageGasTemperature({
+		excessTemperatureStar: excessTemperatureStarBeforeShuttingOff,
+		excessTemperatureEnd: excessTemperatureEndBeforeShuttingOff
+	})
+	result.avgTemperatureAfterVenting = calculateAverageGasTemperature({
+		excessTemperatureStar: excessTemperatureStarAfterVenting,
+		excessTemperatureEnd: excessTemperatureEndAfterVenting
+	})
+	result.compressibilityBeforeShuttingOff = calculate({
+		Tem: result.avgTemperatureBeforeShuttingOff,
+		Pres: result.avgPressureBeforeShuttingOff,
+		arrx_k: arrx_k
+	})
+	result.compressibilityAfterVenting = calculate({
+		Tem: result.avgTemperatureAfterVenting,
+		Pres: result.avgPressureAfterVenting,
+		arrx_k: arrx_k
+	})
+	result.removingGasVolume = calculateGasVolume({
+		geometricVolume: result.geometricVolume,
+		numberOfPurges: numberOfPurges
+	});
+	result.ventingGasVolume = calculateGasStockChange({
+		geometricVolume: result.geometricVolume,
+		avgPressure1: result.avgPressureBeforeShuttingOff,
+		compressibility1: result.compressibilityBeforeShuttingOff,
+		avgTemperature1: result.avgTemperatureBeforeShuttingOff,
+		avgPressure2: result.avgPressureAfterVenting,
+		compressibility2: result.compressibilityAfterVenting,
+		avgTemperature2: result.avgTemperatureAfterVenting
+	});
+	result.summaryGasVolume = result.removingGasVolume + result.ventingGasVolume;
+	result.summaryGasMass = convertM3toKg(result.summaryGasVolume, density);
+	result.summaryGasMassKgUt = convertM3toKgUt(result.summaryGasVolume, lowerHeatingValueOfGas);
+	return result;
+}
